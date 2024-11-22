@@ -1,0 +1,16 @@
+[
+	{
+		"value": "bootstrap",
+		"name": "Bootstrap Breakpoints - [576, 768, 992, 1200, 1400]",
+		"breakpoints": [576, 768, 992, 1200, 1400]
+	},
+	{
+		"value": "tailwind",
+		"name": "Tailwind Breakpoints - [640, 768, 1024, 1280, 1536]",
+		"breakpoints": [640, 768, 1024, 1280, 1536]
+	},
+	{
+		"value": "custom",
+		"name": "Custom"
+	}
+]

@@ -1,0 +1,22 @@
+{
+	"name": "cli",
+	"module": "index.ts",
+	"type": "module",
+	"scripts": {
+		"start": "bun index.ts",
+		"dev": "bun --watch index.ts"
+	},
+	"license": "ISC",
+	"dependencies": {
+		"@image-resizer/tools": "workspace:*",
+		"@inquirer/prompts": "^7.1.0",
+		"commander": "^12.1.0",
+		"ora": "^8.1.1",
+		"typescript": "^5.6.3",
+		"yargs": "^17.7.2"
+	},
+	"devDependencies": {
+		"@types/bun": "latest",
+		"@types/yargs": "^17.0.33"
+	}
+}

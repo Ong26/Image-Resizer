@@ -1,0 +1,59 @@
+{
+	"name": "@image-resizer/tools",
+	"version": "1.0.0",
+	"description": "",
+	"type": "module",
+	"scripts": {
+		"dev": "tsup --watch",
+		"build": "tsup"
+	},
+	"exports": {
+		"./utils/archive": {
+			"types": "./dist/utils/archive.d.cts",
+			"import": "./dist/utils/archive.js",
+			"require": "./dist/utils/archive.cjs"
+		},
+		"./utils/generate-id": {
+			"types": "./dist/utils/generate-id.d.cts",
+			"import": "./dist/utils/generate-id.js",
+			"require": "./dist/utils/generate-id.cjs"
+		},
+		"./utils/deep-clone": {
+			"types": "./dist/utils/deep-clone.d.cts",
+			"import": "./dist/utils/deep-clone.js",
+			"require": "./dist/utils/deep-clone.cjs"
+		},
+		"./constants": {
+			"types": "./dist/constants/index.d.cts",
+			"import": "./dist/constants/index.js",
+			"require": "./dist/constants/index.cjs"
+		},
+		"./constants/defaults": "./src/constants/defaults.json",
+		"./utils": {
+			"types": "./dist/utils/index.d.cts",
+			"import": "./dist/utils/index.js",
+			"require": "./dist/utils/index.cjs"
+		},
+		"./types": {
+			"types": "./dist/types/index.d.cts",
+			"import": "./dist/types/index.js",
+			"require": "./dist/types/index.cjs"
+		}
+	},
+	"keywords": [],
+	"author": "",
+	"license": "ISC",
+	"dependencies": {
+		"archiver": "^7.0.1",
+		"sharp": "^0.33.5"
+	},
+	"devDependencies": {
+		"@image-resizer/typescript-config": "workspace:*",
+		"@types/archiver": "^6.0.3",
+		"@types/bun": "^1.1.10",
+		"tsup": "^8.3.0"
+	},
+	"files": [
+		"dist"
+	]
+}
