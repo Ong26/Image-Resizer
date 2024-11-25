@@ -1,6 +1,8 @@
+import { ImageFormat } from "@image-resizer/tools/constants";
 import breakpoints from "@image-resizer/tools/constants/defaults";
 import fs from "fs";
-
+import { glob } from "glob";
+import path from "path";
 export const isPathValid = (pathStr: string) => {
 	return fs.existsSync(pathStr);
 };
@@ -28,4 +30,17 @@ export const isValidBpCliArg = (bp: string) => {
 	if (isDefaultBp) return true;
 	const mappedBpWidth = bp.split(",").map((x) => +x.trim());
 	return mappedBpWidth.length > 0 && mappedBpWidth.every((x) => !isNaN(x));
+};
+
+export const getImages = (dir: string): string[] => {
+	const imageExts = Object.values(ImageFormat).join(",");
+	console.log(imageExts);
+	const escapedDir = path.normalize(dir).replace(/ /g, "\\ ");
+	console.log(escapedDir);
+	const pattern = path.join(escapedDir, `**/*.{${imageExts}}`);
+	try {
+		return glob.sync(pattern, { nodir: true });
+	} catch (error) {
+		return [];
+	}
 };

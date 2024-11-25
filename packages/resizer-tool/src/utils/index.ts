@@ -77,7 +77,7 @@ export const cropImage = (sharpInstance: sharp.Sharp, coordinate: Coordinate, di
 	});
 };
 export const resizeImage = (sharpInstance: sharp.Sharp, width: number, height: number) => {
-	return sharpInstance.resize({ width: 400, height: 600, fit: sharp.fit.cover, position: sharp.strategy.attention });
+	return sharpInstance.resize({ width, height });
 };
 export const convertImageFormat = (sharpInstance: sharp.Sharp, format: ImageFormat, quality = 1) => {
 	quality = quality * 100;

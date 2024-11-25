@@ -1,7 +1,7 @@
 #!/usr/bin/env bun
 import { ImageFormat } from "@image-resizer/tools/constants";
 import breakpoints from "@image-resizer/tools/constants/defaults";
-import type { ImageFormat as IF } from "@image-resizer/tools/types";
+import type { ImageFormat as IF, SharpInstance } from "@image-resizer/tools/types";
 import { convertImageFormat, exportToFile, getSharpInstance, resizeImage } from "@image-resizer/tools/utils";
 import { input, number, select } from "@inquirer/prompts";
 import fs from "fs";
@@ -11,12 +11,13 @@ import path from "path";
 import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
 import { cliArgs } from "./type";
-import { getBreakpoints, isPathValid, isValidBpCliArg } from "./utils";
-
+import { getBreakpoints, getImages, isExistingDirectory, isValidBpCliArg } from "./utils";
+console.log("hello");
 const tempDir = os.tmpdir();
 const spinner = ora("Converting Image...");
 const argv = yargs(hideBin(process.argv)).argv as cliArgs;
-let inputPath = argv.i || "";
+let inputDirectoryPath = argv.i || "";
+let inputPath = "";
 let outputDirectoryPath = argv.o || "";
 let format = argv.f;
 let quality: number | undefined = !!argv?.q ? +argv.q : 0;
@@ -25,14 +26,15 @@ const startTime = Date.now();
 // CLI Logic
 (async () => {
 	try {
-		console.log("Welcome to the Image Converter CLI!\n");
+		console.log("Welcome to the Image Batch Converter CLI!\n");
 		// Prompt for input file
-		if (!isPathValid(inputPath))
-			inputPath = await input({
-				message: "Enter the path to the input image:",
-				default: "./input/index.jpg",
+		if (!isExistingDirectory(inputDirectoryPath))
+			inputDirectoryPath = await input({
+				message: "Enter the input directory path:",
 				validate: (value) => {
-					return !!value ? isPathValid(value) || "Input file does not exist" : "Input file path cannot be empty";
+					return !!value
+						? isExistingDirectory(value) || "Input directory does not exist"
+						: "Input directory path cannot be empty";
 				},
 			});
 
@@ -40,14 +42,14 @@ const startTime = Date.now();
 		if (!outputDirectoryPath) {
 			outputDirectoryPath = await input({
 				message: "Enter the folder to save the converted image:",
-				validate: (value: string) => (value ? true : "Output file path cannot be empty"),
+				validate: (value) => {
+					return !!value
+						? isExistingDirectory(value) || "Input directory does not exist"
+						: "Input directory path cannot be empty";
+				},
 			});
 		}
 
-		//can only save to temp directory
-		if (!isPathValid(outputDirectoryPath)) {
-			outputDirectoryPath = path.join(tempDir, "image-resizer-cli", outputDirectoryPath);
-		}
 		const imageFormats = Object.values(ImageFormat);
 		// Prompt for format
 		if (imageFormats.findIndex((imageFormat) => imageFormat === format) === -1) {
@@ -92,25 +94,39 @@ const startTime = Date.now();
 		if (!isDirectoryExists) {
 			fs.mkdirSync(outputDirectoryPath, { recursive: true });
 		}
-		const sharpInstance = getSharpInstance(inputPath);
-		const { height = 0, width = 0 } = await sharpInstance.metadata();
-		const _editImage = async (bpWidth: number, format: IF, quality: number) => {
-			const sharpInstance = getSharpInstance(inputPath);
+		const dirImagesPath = getImages(inputDirectoryPath);
+		const _editImage = async (
+			imgInstance: SharpInstance,
+			imgPath: string,
+			height: number,
+			width: number,
+			bpWidth: number,
+			format: IF,
+			quality: number
+		) => {
 			const aspectRatio = width / height;
 			if (bpWidth > width) {
 				return Promise.reject("Breakpoint width is greater than original image width");
 			}
-			const resizedInstance = resizeImage(sharpInstance, bpWidth, Math.round(bpWidth / aspectRatio));
+			const resizedInstance = resizeImage(imgInstance, bpWidth, Math.round(bpWidth / aspectRatio));
 			const img = convertImageFormat(resizedInstance, format, quality);
 
-			const fileTitle = path.basename(inputPath, path.extname(inputPath));
+			const fileTitle = path.basename(imgPath, path.extname(inputPath));
 			const outputImagePath = `${outputDirectoryPath}/${fileTitle}-${bpWidth}.${format}`;
 			return exportToFile(img, outputImagePath);
 		};
-		const editPromises = breakpointArr.map((bpWidth) => {
-			return _editImage(bpWidth, format as IF, quality as number);
+		const imagePromises = dirImagesPath.map(async (imgPath) => {
+			const sharpInstance = getSharpInstance(imgPath);
+			const { height = 0, width = 0 } = await sharpInstance.metadata();
+
+			return breakpointArr
+				.map((bpWidth) => {
+					return _editImage(sharpInstance, imgPath, height, width, bpWidth, format as IF, quality as number);
+				})
+				.flat();
 		});
-		await Promise.allSettled(editPromises);
+
+		await Promise.allSettled(imagePromises);
 		spinner.stop();
 		const endTime = Date.now();
 		const timeTaken = (endTime - startTime) / 1000;
@@ -118,6 +134,7 @@ const startTime = Date.now();
 		console.log(`📂 Saved to: ${outputDirectoryPath}`);
 		console.log(`⏱️ Time taken: ${timeTaken} seconds`);
 	} catch (error) {
+		spinner.stop();
 		console.error(`❌ Error: ${error}`);
 	}
 })();

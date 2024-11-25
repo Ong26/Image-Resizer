@@ -4,13 +4,18 @@
 	"type": "module",
 	"scripts": {
 		"start": "bun index.ts",
-		"dev": "bun --watch index.ts"
+		"dev": "bun --watch index.ts",
+		"build:exe-single": "bun build --compile --minify --sourcemap ./index.ts --outfile windows-single",
+		"build:exe-batch": "bun build --compile --minify --sourcemap ./batch.ts --outfile windows-batch",
+		"build:mac-single": "bun build --compile --target=bun-darwin-arm64 ./index.ts --outfile mac-single",
+		"build:mac-batch": "bun build --compile --minify --sourcemap --target=bun-darwin-arm64 ./batch.ts --outfile mac-batch"
 	},
 	"license": "ISC",
 	"dependencies": {
 		"@image-resizer/tools": "workspace:*",
 		"@inquirer/prompts": "^7.1.0",
 		"commander": "^12.1.0",
+		"glob": "^11.0.0",
 		"ora": "^8.1.1",
 		"typescript": "^5.6.3",
 		"yargs": "^17.7.2"

@@ -45,6 +45,7 @@
 	"license": "ISC",
 	"dependencies": {
 		"archiver": "^7.0.1",
+		"optional": "^0.1.4",
 		"sharp": "^0.33.5"
 	},
 	"devDependencies": {
