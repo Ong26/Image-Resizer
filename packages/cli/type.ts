@@ -2,7 +2,7 @@ import { ImageFormat } from "@image-resizer/tools/types";
 
 export type cliArgs = {
 	//breakpoints
-	bp?: string;
+	b?: string;
 	//input file
 	i?: string;
 

@@ -77,11 +77,10 @@ export const cropImage = (sharpInstance: sharp.Sharp, coordinate: Coordinate, di
 	});
 };
 export const resizeImage = (sharpInstance: sharp.Sharp, width: number, height: number) => {
-	return sharpInstance.resize({ width, height });
+	return sharpInstance.resize({ width: Math.round(width), height: Math.round(height) });
 };
-export const convertImageFormat = (sharpInstance: sharp.Sharp, format: ImageFormat, quality = 1) => {
-	quality = quality * 100;
-	quality = quality > 100 ? 100 : quality < 0 ? 0 : quality;
+export const convertImageFormat = (sharpInstance: sharp.Sharp, format: ImageFormat, quality = 85) => {
+	quality = quality > 100 ? 100 : quality;
 	switch (format) {
 		case "png":
 			return sharpInstance.png({ quality });

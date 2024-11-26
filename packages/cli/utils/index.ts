@@ -25,6 +25,7 @@ export const getBreakpoints = (bp: string) => {
 };
 
 export const isValidBpCliArg = (bp: string) => {
+	if (!bp) return false;
 	const bpValues = breakpoints.map((bp) => bp.value).filter((bp) => bp !== "custom");
 	const isDefaultBp = bpValues.includes(bp);
 	if (isDefaultBp) return true;

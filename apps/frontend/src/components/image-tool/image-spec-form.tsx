@@ -1,24 +1,12 @@
 /* eslint-disable @next/next/no-img-element */
 // TODO implement DPR image
 import { AspectRatioList } from "@image-resizer/tools/constants";
-import {
-	type AspectRatio,
-	type Dimension,
-	type ImageFormat,
-	type ImageSpec,
-} from "@image-resizer/tools/types";
+import { type AspectRatio, type Dimension, type ImageFormat, type ImageSpec } from "@image-resizer/tools/types";
 import { generateId } from "@image-resizer/tools/utils/generate-id";
 
 import { Button } from "@/components/ui//button";
 import { Input } from "@/components/ui//input";
-import {
-	Select,
-	SelectContent,
-	SelectGroup,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from "@/components/ui//select";
+import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui//select";
 import {
 	ChangeEvent,
 	Dispatch,
@@ -42,36 +30,24 @@ type Props = {
 	saveImageSpec: (imageSpec: ImageSpec) => void;
 };
 
-const ImageSpecForm = ({
-	src,
-	originalDimension,
-	activeImageSpec,
-	setActiveImageSpec,
-	saveImageSpec,
-}: Props) => {
+const ImageSpecForm = ({ src, originalDimension, activeImageSpec, setActiveImageSpec, saveImageSpec }: Props) => {
 	const originalRatio =
-		activeImageSpec?.aspectRatio ||
-		activeImageSpec.resizeTo.width / activeImageSpec.resizeTo.height;
+		activeImageSpec?.aspectRatio || activeImageSpec.resizeTo.width / activeImageSpec.resizeTo.height;
 	const imageRef = useRef<HTMLImageElement | null>(null);
 
 	const [ratioToOriginalSize, setRatioToOriginalSize] = useState(1);
 
 	const [title, setTitle] = useState(activeImageSpec.title || "");
 	const [aspectRatioSelectValue, setAspectRatioSelectValue] = useState(() => {
-		const aspectRatio = AspectRatioList.find(
-			(ratio) => ratio === activeImageSpec.aspectRatioWithDiv
-		);
+		const aspectRatio = AspectRatioList.find((ratio) => ratio === activeImageSpec.aspectRatioWithDiv);
 		return (aspectRatio || "Freeform") as string;
 	});
-	const [cropAspect, setCropAspect] = useState<number | undefined>(
-		activeImageSpec.aspectRatio
-	);
-	const [customAspectRatio, setCustomAspectRatio] =
-		useState<Dimension>(originalDimension);
+	const [cropAspect, setCropAspect] = useState<number | undefined>(activeImageSpec.aspectRatio);
+	const [customAspectRatio, setCustomAspectRatio] = useState<Dimension>(originalDimension);
 	const [width, setWidth] = useState<number>(activeImageSpec.resizeTo.width);
 	const [height, setHeight] = useState<number>(activeImageSpec.resizeTo.height);
 	const [format, setFormat] = useState<ImageFormat>(activeImageSpec.format);
-	const [quality, setQuality] = useState(1);
+	const [quality, setQuality] = useState(85);
 	const toRatioValue = useCallback(
 		(value: number) => {
 			return value / ratioToOriginalSize;
@@ -193,8 +169,7 @@ const ImageSpecForm = ({
 		setActiveImageSpec(null);
 		toast("Image Specification Saved");
 	};
-	const onQualityChange = (event: ChangeEvent<HTMLInputElement>) =>
-		setQuality(+event.target.value);
+	const onQualityChange = (event: ChangeEvent<HTMLInputElement>) => setQuality(+event.target.value);
 
 	const cancelAdd = () => {
 		setActiveImageSpec(null);
@@ -216,10 +191,7 @@ const ImageSpecForm = ({
 				</div>
 				<div className="flex flex-col">
 					<label>Crop Aspect Ratio</label>
-					<Select
-						onValueChange={onAspectRatioSelectValueChange}
-						value={aspectRatioSelectValue as string}
-					>
+					<Select onValueChange={onAspectRatioSelectValueChange} value={aspectRatioSelectValue as string}>
 						<SelectTrigger className="w-full">
 							<SelectValue placeholder="Custom" />
 						</SelectTrigger>
@@ -263,13 +235,7 @@ const ImageSpecForm = ({
 					)}
 				</div>
 				<div className="col-span-2">
-					<ReactCrop
-						crop={crop}
-						onChange={setCrop}
-						minWidth={10}
-						minHeight={10}
-						aspect={cropAspect}
-					>
+					<ReactCrop crop={crop} onChange={setCrop} minWidth={10} minHeight={10} aspect={cropAspect}>
 						<img ref={imageRef} src={src} onLoad={onImageLoaded} alt="Upload" />
 					</ReactCrop>
 				</div>
@@ -302,9 +268,9 @@ const ImageSpecForm = ({
 						type="number"
 						value={quality}
 						onChange={onQualityChange}
-						min={0.1}
-						step={0.1}
-						max={1.0}
+						min={1}
+						step={1}
+						max={100}
 					/>
 				</div>
 				<div className="flex flex-col">

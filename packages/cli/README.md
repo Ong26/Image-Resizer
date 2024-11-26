@@ -18,7 +18,7 @@ The batch image resizer allows you to resize and convert multiple images in a di
 #### Command
 
 ```sh
-bun batch.ts -i <input_directory> -o <output_directory> -f <format> -q <quality> -bp <breakpoints>
-```
+bun batch.ts -i <input_directory> -o <output_directory> -f <format> -q <quality> -b <breakpoints>
 
-## Build
+bun index.ts -i <input_image_path> -o <output_directory> -f <format> -q <quality> -b <breakpoints>
+```

@@ -6,23 +6,53 @@ import { convertImageFormat, exportToFile, getSharpInstance, resizeImage } from 
 import { input, number, select } from "@inquirer/prompts";
 import fs from "fs";
 import ora from "ora";
-import os from "os";
 import path from "path";
 import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
+import { version } from "./package.json";
 import { cliArgs } from "./type";
 import { getBreakpoints, getImages, isExistingDirectory, isValidBpCliArg } from "./utils";
-console.log("hello");
-const tempDir = os.tmpdir();
 const spinner = ora("Converting Image...");
-const argv = yargs(hideBin(process.argv)).argv as cliArgs;
-let inputDirectoryPath = argv.i || "";
-let inputPath = "";
-let outputDirectoryPath = argv.o || "";
-let format = argv.f;
-let quality: number | undefined = !!argv?.q ? +argv.q : 0;
-let bp = argv.bp?.toString() || "";
-const startTime = Date.now();
+const argsY = yargs(hideBin(process.argv))
+	.usage("Usage: $0 -i [folder] [-o output] [-q quality] [-f format] [-bp breakpoint]")
+	.version(version)
+	.alias("v", "version")
+	.alias("h", "help")
+	.option("i", {
+		alias: "input",
+		describe: "Input directory path",
+		type: "string",
+	})
+	.option("o", {
+		alias: "output",
+		describe: "Output directory path",
+		type: "string",
+	})
+	.option("q", {
+		alias: "quality",
+		describe: "Output image quality",
+		type: "number",
+		default: 85,
+	})
+	.option("f", {
+		alias: "format",
+		describe: "Output image format",
+		type: "string",
+	})
+
+	.option("b", {
+		alias: "breakpoint",
+		describe: "Breakpoint width",
+		type: "string",
+	})
+	.help().argv as cliArgs;
+
+let inputDirectoryPath = argsY.i || "";
+let outputDirectoryPath = argsY.o || "";
+let format = argsY.f;
+let quality: number | undefined = !!argsY?.q ? +argsY.q : 0;
+let bp = argsY.b?.toString() || "";
+
 // CLI Logic
 (async () => {
 	try {
@@ -60,10 +90,10 @@ const startTime = Date.now();
 		}
 		if (!quality) {
 			quality = await number({
-				message: "Enter the quality of the image (0-1):",
-				default: 1,
+				message: "Enter the quality of the image (1-100):",
+				default: 85,
 				validate: (value) => {
-					return (!!value && value > 0 && value <= 1) || "Quality must be between 0 and 1";
+					return (!!value && value > 1 && value <= 100) || "Quality must be between 1 and 100";
 				},
 			});
 		}
@@ -111,10 +141,12 @@ const startTime = Date.now();
 			const resizedInstance = resizeImage(imgInstance, bpWidth, Math.round(bpWidth / aspectRatio));
 			const img = convertImageFormat(resizedInstance, format, quality);
 
-			const fileTitle = path.basename(imgPath, path.extname(inputPath));
+			const fileTitle = path.basename(imgPath, path.extname(imgPath));
 			const outputImagePath = `${outputDirectoryPath}/${fileTitle}-${bpWidth}.${format}`;
 			return exportToFile(img, outputImagePath);
 		};
+		const startTime = Date.now();
+
 		const imagePromises = dirImagesPath.map(async (imgPath) => {
 			const sharpInstance = getSharpInstance(imgPath);
 			const { height = 0, width = 0 } = await sharpInstance.metadata();

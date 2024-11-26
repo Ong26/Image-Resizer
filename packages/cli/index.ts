@@ -10,18 +10,51 @@ import os from "os";
 import path from "path";
 import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
+import { version } from "./package.json";
 import { cliArgs } from "./type";
 import { getBreakpoints, isPathValid, isValidBpCliArg } from "./utils";
 
 const tempDir = os.tmpdir();
 const spinner = ora("Converting Image...");
-const argv = yargs(hideBin(process.argv)).argv as cliArgs;
-let inputPath = argv.i || "";
-let outputDirectoryPath = argv.o || "";
-let format = argv.f;
-let quality: number | undefined = !!argv?.q ? +argv.q : 0;
-let bp = argv.bp?.toString() || "";
-const startTime = Date.now();
+const argsY = yargs(hideBin(process.argv))
+	.usage("Usage: $0 -i [file] [-o output] [-q quality] [-f format] [-bp breakpoint]")
+	.version(version)
+	.alias("v", "version")
+	.alias("h", "help")
+	.option("i", {
+		alias: "input",
+		describe: "Input image path",
+		type: "string",
+	})
+	.option("o", {
+		alias: "output",
+		describe: "Output directory path",
+		type: "string",
+	})
+	.option("q", {
+		alias: "quality",
+		describe: "Output image quality",
+		type: "number",
+		default: 85,
+	})
+	.option("f", {
+		alias: "format",
+		describe: "Output image format",
+		type: "string",
+	})
+
+	.option("b", {
+		alias: "breakpoint",
+		describe: "Breakpoint width",
+		type: "string",
+	})
+	.help().argv as cliArgs;
+let inputPath = argsY.i || "";
+let outputDirectoryPath = argsY.o || "";
+let format = argsY.f;
+let quality: number | undefined = !!argsY?.q ? +argsY.q : 0;
+let bp = argsY.b?.toString() || "";
+
 // CLI Logic
 (async () => {
 	try {
@@ -58,10 +91,10 @@ const startTime = Date.now();
 		}
 		if (!quality) {
 			quality = await number({
-				message: "Enter the quality of the image (0-1):",
-				default: 1,
+				message: "Enter the quality of the image (1-100):",
+				default: 100,
 				validate: (value) => {
-					return (!!value && value > 0 && value <= 1) || "Quality must be between 0 and 1";
+					return (!!value && value > 1 && value <= 100) || "Quality must be between 0 and 1";
 				},
 			});
 		}
@@ -87,6 +120,8 @@ const startTime = Date.now();
 		}
 
 		spinner.start();
+		const startTime = Date.now();
+
 		const isDirectoryExists = fs.existsSync(outputDirectoryPath);
 
 		if (!isDirectoryExists) {
@@ -114,9 +149,9 @@ const startTime = Date.now();
 		spinner.stop();
 		const endTime = Date.now();
 		const timeTaken = (endTime - startTime) / 1000;
-		console.log(`✅ Image successfully converted.`);
-		console.log(`📂 Saved to: ${outputDirectoryPath}`);
-		console.log(`⏱️ Time taken: ${timeTaken} seconds`);
+		console.log(`✅Image successfully converted.`);
+		console.log(`📂Saved to: ${outputDirectoryPath}`);
+		console.log(`⏱️Time taken: ${timeTaken} seconds`);
 	} catch (error) {
 		console.error(`❌ Error: ${error}`);
 	}
