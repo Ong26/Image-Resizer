@@ -1,7 +1,8 @@
 /* eslint-disable @next/next/no-img-element */
 // TODO implement DPR image
-import { AspectRatioList } from "@image-resizer/tools/constants";
-import { type AspectRatio, type Dimension, type ImageFormat, type ImageSpec } from "@image-resizer/tools/types";
+import { AspectRatioList, ImageFormat } from "@image-resizer/tools/constants";
+
+import { ImageFormat as IF, type AspectRatio, type Dimension, type ImageSpec } from "@image-resizer/tools/types";
 import { generateId } from "@image-resizer/tools/utils/generate-id";
 
 import { Button } from "@/components/ui//button";
@@ -46,7 +47,7 @@ const ImageSpecForm = ({ src, originalDimension, activeImageSpec, setActiveImage
 	const [customAspectRatio, setCustomAspectRatio] = useState<Dimension>(originalDimension);
 	const [width, setWidth] = useState<number>(activeImageSpec.resizeTo.width);
 	const [height, setHeight] = useState<number>(activeImageSpec.resizeTo.height);
-	const [format, setFormat] = useState<ImageFormat>(activeImageSpec.format);
+	const [format, setFormat] = useState<IF>(activeImageSpec.format);
 	const [quality, setQuality] = useState(85);
 	const toRatioValue = useCallback(
 		(value: number) => {
@@ -115,7 +116,7 @@ const ImageSpecForm = ({ src, originalDimension, activeImageSpec, setActiveImage
 		};
 	};
 
-	const onFormatChange = (value: ImageFormat) => setFormat(value);
+	const onFormatChange = (value: IF) => setFormat(value);
 	const cropData = useMemo(() => {
 		if (!!crop && !!imageRef.current) {
 			const { width } = imageRef.current;
@@ -252,9 +253,11 @@ const ImageSpecForm = ({ src, originalDimension, activeImageSpec, setActiveImage
 						</SelectTrigger>
 						<SelectContent>
 							<SelectGroup>
-								<SelectItem value="png">PNG</SelectItem>
-								<SelectItem value="jpg">JPG</SelectItem>
-								<SelectItem value="avif">AVIF</SelectItem>
+								{Object.entries(ImageFormat).map(([key, value]) => (
+									<SelectItem key={key} value={value}>
+										{key}
+									</SelectItem>
+								))}
 							</SelectGroup>
 						</SelectContent>
 					</Select>
