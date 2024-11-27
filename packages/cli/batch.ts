@@ -1,17 +1,16 @@
 #!/usr/bin/env bun
 import { ImageFormat } from "@image-resizer/tools/constants";
 import breakpoints from "@image-resizer/tools/constants/defaults";
-import type { ImageFormat as IF, SharpInstance } from "@image-resizer/tools/types";
-import { convertImageFormat, exportToFile, getSharpInstance, resizeImage } from "@image-resizer/tools/utils";
+import type { ImageFormat as IF } from "@image-resizer/tools/types";
+import { getSharpInstance } from "@image-resizer/tools/utils";
 import { input, number, select } from "@inquirer/prompts";
 import fs from "fs";
 import ora from "ora";
-import path from "path";
 import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
 import { version } from "./package.json";
 import { cliArgs } from "./type";
-import { getBreakpoints, getImages, isExistingDirectory, isValidBpCliArg } from "./utils";
+import { _editImage, getBreakpoints, getImages, isExistingDirectory, isValidBpCliArg } from "./utils";
 const spinner = ora("Converting Image...");
 const argsY = yargs(hideBin(process.argv))
 	.usage("Usage: $0 -i [folder] [-o output] [-q quality] [-f format] [-bp breakpoint]")
@@ -39,11 +38,15 @@ const argsY = yargs(hideBin(process.argv))
 		describe: "Output image format",
 		type: "string",
 	})
-
 	.option("b", {
 		alias: "breakpoint",
 		describe: "Breakpoint width",
 		type: "string",
+	})
+	.option("r", {
+		alias: "recursive",
+		describe: "Recursive",
+		type: "boolean",
 	})
 	.help().argv as cliArgs;
 
@@ -119,33 +122,13 @@ let bp = argsY.b?.toString() || "";
 		}
 
 		spinner.start();
+		const startTime = Date.now();
 		const isDirectoryExists = fs.existsSync(outputDirectoryPath);
 
 		if (!isDirectoryExists) {
 			fs.mkdirSync(outputDirectoryPath, { recursive: true });
 		}
 		const dirImagesPath = getImages(inputDirectoryPath);
-		const _editImage = async (
-			imgInstance: SharpInstance,
-			imgPath: string,
-			height: number,
-			width: number,
-			bpWidth: number,
-			format: IF,
-			quality: number
-		) => {
-			const aspectRatio = width / height;
-			if (bpWidth > width) {
-				return Promise.reject("Breakpoint width is greater than original image width");
-			}
-			const resizedInstance = resizeImage(imgInstance, bpWidth, Math.round(bpWidth / aspectRatio));
-			const img = convertImageFormat(resizedInstance, format, quality);
-
-			const fileTitle = path.basename(imgPath, path.extname(imgPath));
-			const outputImagePath = `${outputDirectoryPath}/${fileTitle}-${bpWidth}.${format}`;
-			return exportToFile(img, outputImagePath);
-		};
-		const startTime = Date.now();
 
 		const imagePromises = dirImagesPath.map(async (imgPath) => {
 			const sharpInstance = getSharpInstance(imgPath);
@@ -153,7 +136,17 @@ let bp = argsY.b?.toString() || "";
 
 			return breakpointArr
 				.map((bpWidth) => {
-					return _editImage(sharpInstance, imgPath, height, width, bpWidth, format as IF, quality as number);
+					return _editImage(
+						sharpInstance,
+						imgPath,
+						inputDirectoryPath,
+						outputDirectoryPath,
+						height,
+						width,
+						bpWidth,
+						format as IF,
+						quality as number
+					);
 				})
 				.flat();
 		});
