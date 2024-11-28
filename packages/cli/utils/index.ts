@@ -37,10 +37,13 @@ export const isValidBpCliArg = (bp: string) => {
 	return mappedBpWidth.length > 0 && mappedBpWidth.every((x) => !isNaN(x));
 };
 
-export const getImages = (dir: string): string[] => {
+export const getImages = (dir: string, isRecursive: boolean): string[] => {
 	const imageExts = Object.values(ImageFormat).join(",");
 	const escapedDir = path.normalize(dir).replace(/ /g, "\\ ");
-	const pattern = path.join(escapedDir, `**/*.{${imageExts}}`);
+	let pattern = path.join(escapedDir, `*.{${imageExts}}`);
+	if (isRecursive) {
+		pattern = path.join(escapedDir, `**/*.{${imageExts}}`);
+	}
 	try {
 		return glob.sync(pattern, { nodir: true });
 	} catch (error) {
@@ -49,8 +52,7 @@ export const getImages = (dir: string): string[] => {
 };
 export const createFolder = (folderPath: string) => {
 	try {
-		if (fs.existsSync(folderPath)) {
-		}
+		if (fs.existsSync(folderPath)) return;
 		fs.mkdirSync(folderPath, { recursive: true });
 	} catch (error) {
 		console.log(error);
@@ -90,7 +92,7 @@ export const _editImage = async (
 		const img = convertImageFormat(resizedInstance, format, quality);
 		const relativePath = path.dirname(path.relative(inputPath, imgPath));
 		const outputDirectory = path.join(outputPath, relativePath);
-		await asyncCreateFolder(outputDirectory);
+		createFolder(outputDirectory);
 		const fileTitle = path.basename(imgPath, path.extname(imgPath));
 		const outputImagePath = `${outputDirectory}/${fileTitle}-${bpWidth}.${format}`;
 		return exportToFile(img, outputImagePath);

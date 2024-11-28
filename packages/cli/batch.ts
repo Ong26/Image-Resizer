@@ -3,7 +3,7 @@ import { ImageFormat } from "@image-resizer/tools/constants";
 import breakpoints from "@image-resizer/tools/constants/defaults";
 import type { ImageFormat as IF } from "@image-resizer/tools/types";
 import { getSharpInstance } from "@image-resizer/tools/utils";
-import { input, number, select } from "@inquirer/prompts";
+import { confirm, input, number, select } from "@inquirer/prompts";
 import fs from "fs";
 import ora from "ora";
 import yargs from "yargs";
@@ -45,9 +45,17 @@ const argsY = yargs(hideBin(process.argv))
 	})
 	.option("r", {
 		alias: "recursive",
-		describe: "Recursive",
+		describe: "Recursively convert images in subdirectories",
 		type: "boolean",
+		default: false,
 	})
+	.option("p", {
+		alias: "inquirer",
+		describe: "Needs inquirer prompt",
+		type: "boolean",
+		default: false,
+	})
+
 	.help().argv as cliArgs;
 
 let inputDirectoryPath = argsY.i || "";
@@ -55,11 +63,13 @@ let outputDirectoryPath = argsY.o || "";
 let format = argsY.f;
 let quality: number | undefined = !!argsY?.q ? +argsY.q : 0;
 let bp = argsY.b?.toString() || "";
+let recursive = argsY.r || false;
+let inquirer = argsY.p || false;
 
-// CLI Logic
 (async () => {
 	try {
 		console.log("Welcome to the Image Batch Converter CLI!\n");
+
 		// Prompt for input file
 		if (!isExistingDirectory(inputDirectoryPath))
 			inputDirectoryPath = await input({
@@ -84,6 +94,7 @@ let bp = argsY.b?.toString() || "";
 		}
 
 		const imageFormats = Object.values(ImageFormat);
+
 		// Prompt for format
 		if (imageFormats.findIndex((imageFormat) => imageFormat === format) === -1) {
 			format = await select({
@@ -120,7 +131,12 @@ let bp = argsY.b?.toString() || "";
 		} else {
 			breakpointArr = getBreakpoints(bp);
 		}
-
+		if (inquirer) {
+			recursive = await confirm({
+				message: "Do you want to recursively convert images in subdirectories?",
+				default: false,
+			});
+		}
 		spinner.start();
 		const startTime = Date.now();
 		const isDirectoryExists = fs.existsSync(outputDirectoryPath);
@@ -128,7 +144,7 @@ let bp = argsY.b?.toString() || "";
 		if (!isDirectoryExists) {
 			fs.mkdirSync(outputDirectoryPath, { recursive: true });
 		}
-		const dirImagesPath = getImages(inputDirectoryPath);
+		const dirImagesPath = getImages(inputDirectoryPath, recursive);
 
 		const imagePromises = dirImagesPath.map(async (imgPath) => {
 			const sharpInstance = getSharpInstance(imgPath);

@@ -14,4 +14,10 @@ export type cliArgs = {
 
 	//quality
 	q?: string;
+
+	//recursive
+	r?: boolean;
+
+	//inquirer prompt
+	p?: boolean;
 };
